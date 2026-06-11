@@ -13,7 +13,7 @@ let tokenExpiry = 0;
 
 async function getValidToken() {
     const now = Date.now();
-    // 5 menit (300000 ms)
+    // 5 menit (300000 ms) sebelum kedaluwarsa, minta token baru
     if (accessToken && now < (tokenExpiry - 300000)) {
         return accessToken;
     }
@@ -41,6 +41,7 @@ async function getValidToken() {
     }
 }
 
+// Endpoint 1: Pencarian Makanan
 app.get('/api/search', async (req, res) => {
     const query = req.query.q;
 
@@ -62,6 +63,31 @@ app.get('/api/search', async (req, res) => {
         res.json(response.data);
     } catch (error) {
         res.status(500).json({ error: "Gagal meneruskan permintaan ke server FatSecret", details: error.message });
+    }
+});
+
+// Endpoint 2: Detail Nutrisi Makanan
+app.get('/api/detail', async (req, res) => {
+    const foodId = req.query.food_id;
+
+    if (!foodId) {
+        return res.status(400).json({ error: "Parameter 'food_id' wajib diisi. Contoh: /api/detail?food_id=4284" });
+    }
+
+    try {
+        const token = await getValidToken();
+        const response = await axios.get('https://platform.fatsecret.com/rest/server.api', {
+            params: {
+                method: 'food.get.v2',
+                food_id: foodId,
+                format: 'json'
+            },
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: "Gagal menarik detail nutrisi dari FatSecret", details: error.message });
     }
 });
 
