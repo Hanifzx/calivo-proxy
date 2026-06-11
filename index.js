@@ -55,6 +55,9 @@ app.get('/api/search', async (req, res) => {
             params: {
                 method: 'foods.search',
                 search_expression: query,
+                region: 'ID',
+                language: 'id',
+                max_results: req.query.max_results || 20,
                 format: 'json'
             },
             headers: { 'Authorization': `Bearer ${token}` }
